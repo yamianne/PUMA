@@ -56,6 +56,11 @@ ParticleSystem::ParticleSystem(const DxDevice& device, const ConstantBuffer<Dire
 	m_inputLayout = device.CreateInputLayout<ParticleVertex>(vsCode);
 }
 
+void ParticleSystem::UpdateEmitterPosition(DirectX::XMFLOAT3 emmiterPosition)
+{
+	m_emitterPos = emmiterPosition;
+}
+
 void ParticleSystem::Update(const dx_ptr<ID3D11DeviceContext>& context, float dt, DirectX::XMFLOAT4 cameraPosition)
 {
 	for (auto it = m_particles.begin(); it != m_particles.end(); )

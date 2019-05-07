@@ -107,10 +107,8 @@ Puma::Puma(HINSTANCE appInstance)
 	XMStoreFloat4x4(&m_tableTopMtx, XMMatrixRotationY(XM_PIDIV4 / 4) *
 		XMMatrixTranslation(TABLE_POS.x, TABLE_POS.y, TABLE_POS.z));
 
-	for (int i = 0; i < ROBOT_PARTS_NUMBER; i++)
-	{
-		XMStoreFloat4x4(&m_robotPartMtx[i], XMMatrixTranslation(0, 0, 0));
-	}
+	for (auto& m_robotPart : m_robotPartMtx)
+		XMStoreFloat4x4(&m_robotPart, XMMatrixIdentity());
 
 	//Constant buffers content
 	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -169,17 +167,60 @@ void Puma::UpdateSwivel(float dt)
 	float circleX = 0.3f * XMScalarSin(XM_2PI * time / 4);
 	float circleY = 0.3f * XMScalarCos(XM_2PI * time / 4);
 	XMVECTOR pos = { circleX, circleY, 0.0f };
+	XMVECTOR norm = { 0.0f, 0.0f, -1.0f };
 	XMMATRIX mirrorMtx;
 	mirrorMtx = XMLoadFloat4x4(&m_mirrorMtx);
-	XMStoreFloat4x4(&m_helpPointMtx, XMMatrixTranslationFromVector(XMVector3TransformCoord(pos, mirrorMtx)));
+	m_swivelPos = XMVector3TransformCoord(pos, mirrorMtx);
+	m_swivelNorm = XMVector3TransformNormal(norm, mirrorMtx);
+	XMStoreFloat4x4(&m_helpPointMtx, XMMatrixTranslationFromVector(m_swivelPos));
 }
+
+void Puma::CalculateRobotAngles(XMVECTOR pos, XMVECTOR normal)
+{
+	float a1, a2, a3, a4, a5;
+	float l1 = .91f, l2 = .81f, l3 = .33f, dy = .27f, dz = .26f;
+	normal = XMVector3Normalize(normal);
+	XMVECTOR pos1vec = pos + normal * l3;
+	XMFLOAT4 pos1;
+	XMStoreFloat4(&pos1, pos1vec);
+	float e = sqrtf(pos1.z * pos1.z + pos1.x * pos1.x - dz * dz);
+	a1 = atan2(pos1.z, -pos1.x) + atan2(dz, e);
+	XMVECTOR pos2vec = { e, pos1.y - dy, .0f };
+	XMFLOAT4 pos2;
+	XMStoreFloat4(&pos2, pos2vec);
+	a3 = -acosf(min(1.0f, (pos2.x * pos2.x + pos2.y * pos2.y - l1 * l1 - l2 * l2)
+		/ (2.0f * l1 * l2)));
+	float k = l1 + l2 * cosf(a3), l = l2 * sinf(a3);
+	a2 = -atan2(pos2.y, sqrtf(pos2.x*pos2.x + pos2.z*pos2.z)) - atan2(l, k);
+	XMVECTOR normal1 = XMVector3TransformNormal(normal, XMMatrixRotationY(-a1));
+	normal1 = XMVector3TransformNormal(normal1, XMMatrixRotationZ(-(a2 + a3)));
+	XMFLOAT4 normal1val;
+	XMStoreFloat4(&normal1val, normal1);
+	a5 = acosf(normal1val.x);
+	a4 = atan2(normal1val.z, normal1val.y);
+
+	XMMATRIX mtx = XMMatrixRotationY(a1);
+	XMStoreFloat4x4(&m_robotPartMtx[1], mtx);
+	mtx = XMMatrixTranslation(0.0f, -dy, 0.0f) * XMMatrixRotationZ(a2) * XMMatrixTranslation(0.0f, dy, 0.0f) * mtx;
+	XMStoreFloat4x4(&m_robotPartMtx[2], mtx);
+	mtx = XMMatrixTranslation(l1, -dy, 0.0f) * XMMatrixRotationZ(a3) * XMMatrixTranslation(-l1, dy, 0.0f) * mtx;
+	XMStoreFloat4x4(&m_robotPartMtx[3], mtx);
+	mtx = XMMatrixTranslation(0.0f, -dy, dz) * XMMatrixRotationX(a4) * XMMatrixTranslation(0.0f, dy, -dz) * mtx;
+	XMStoreFloat4x4(&m_robotPartMtx[4], mtx);
+	mtx = XMMatrixTranslation((l1+l2), -dy, 0.0f) * XMMatrixRotationZ(a5) * XMMatrixTranslation(-(l1 + l2), dy, 0.0f) * mtx;
+	XMStoreFloat4x4(&m_robotPartMtx[5], mtx);
+}
 
 void Puma::Update(const Clock& c)
 {
 	double dt = c.getFrameTime();
 	HandleCameraInput(dt);
-	UpdateLamp(static_cast<float>(dt));
+	//UpdateLamp(static_cast<float>(dt));
 	UpdateSwivel(static_cast<float>(dt));
+	XMFLOAT3 pos;
+	XMStoreFloat3(&pos, m_swivelPos);
+	m_particles.UpdateEmitterPosition(pos);
+	CalculateRobotAngles(m_swivelPos, m_swivelNorm);
 	m_particles.Update(m_device.context(), static_cast<float>(dt), m_camera.getCameraPosition());
 }
 
@@ -257,9 +298,9 @@ void Puma::Render()
 
 	DrawScene();
 
-	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, UINT_MAX);
-	//m_device.context()->OMSetDepthStencilState(m_dssNoWrite.get(), 0);
-	//DrawParticles();
-	//m_device.context()->OMSetBlendState(nullptr, nullptr, UINT_MAX);
-	//m_device.context()->OMSetDepthStencilState(nullptr, 0);
+	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, UINT_MAX);
+	m_device.context()->OMSetDepthStencilState(m_dssNoWrite.get(), 0);
+	DrawParticles();
+	m_device.context()->OMSetBlendState(nullptr, nullptr, UINT_MAX);
+	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 }

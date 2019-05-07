@@ -27,7 +27,7 @@ namespace mini::gk2
 		static constexpr float MIRROR_WIDTH = 1.0f;
 		static constexpr float MIRROR_HEIGHT = 2.0f;
 		static constexpr float MIRROR_ANGLE = DirectX::XM_PI / 6;
-		static constexpr DirectX::XMVECTOR MIRROR_POSITION = {-2.0f, 0.0f, -0.27f};
+		static constexpr DirectX::XMVECTOR MIRROR_POSITION = {-1.7f, 0.0f, -0.27f};
 		static constexpr float CYLINDER_RADIUS = 0.2f;
 		static constexpr float CYLINDER_HEIGHT = 1.0f;
 		static constexpr int CYLINDER_STACKS = 8;
@@ -56,13 +56,13 @@ namespace mini::gk2
 		Mesh m_monitor; //uses m_monitorMtx
 		Mesh m_screen; //uses m_monitorMtx
 
-		Mesh m_robotPart[6]; // 6 parts of robot
+		Mesh m_robotPart[ROBOT_PARTS_NUMBER]; // 6 parts of robot
 		Mesh m_mirror;
 		Mesh m_cylinder;
 		Mesh m_cylinderBase;
 		Mesh m_helpPoint;
 
-		DirectX::XMFLOAT4X4 m_robotPartMtx[6];
+		DirectX::XMFLOAT4X4 m_robotPartMtx[ROBOT_PARTS_NUMBER];
 		DirectX::XMFLOAT4X4 m_mirrorMtx;
 		DirectX::XMFLOAT4X4 m_cylinderMtx;
 		DirectX::XMFLOAT4X4 m_cylinderBaseMtx[2];
@@ -82,9 +82,13 @@ namespace mini::gk2
 
 		ParticleSystem m_particles;
 
+		DirectX::XMVECTOR m_swivelPos;
+		DirectX::XMVECTOR m_swivelNorm;
+
 		void UpdateCameraCB();
 		void UpdateLamp(float dt);
 		void UpdateSwivel(float dt);
+		void CalculateRobotAngles(DirectX::XMVECTOR pos, DirectX::XMVECTOR normal);
 
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
 		void DrawParticles() const;

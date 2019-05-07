@@ -87,6 +87,7 @@ namespace mini
 
 			void Update(const dx_ptr<ID3D11DeviceContext>& context, float dt, DirectX::XMFLOAT4 cameraPosition);
 			void Render(const dx_ptr<ID3D11DeviceContext>& context) const;
+			void UpdateEmitterPosition(DirectX::XMFLOAT3 emmiterPosition);
 
 		private:
 			static const DirectX::XMFLOAT3 EMITTER_DIR;	//mean direction of particles' velocity

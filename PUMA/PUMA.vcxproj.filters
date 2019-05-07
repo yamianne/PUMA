@@ -14,7 +14,7 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Resource Files\Shaders">
-      <UniqueIdentifier>{02194ea3-2e04-4a60-8ed7-7598b7976be9}</UniqueIdentifier>
+      <UniqueIdentifier>{fc7003b8-5f65-4268-8851-2b63976936a8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +58,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="pumaVS.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
     <FxCompile Include="lightAndShadowPS.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
@@ -77,9 +80,6 @@
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="phongVS.hlsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="pumaVS.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
