@@ -297,13 +297,13 @@ MeshLoader::vpn_mesh_t MeshLoader::LoadMesh(const std::wstring& fileName)
 	return{ move(verts), move(inds) };
 }
 
-MeshLoader::vpn_mesh_t MeshLoader::LoadMeshFromTXT(const std::wstring & filename)
+MeshLoader::vpn_mesh_t MeshLoader::LoadMeshFromTXT(const std::wstring & filename, std::vector<Edge> &edges)
 {
 	ifstream input;
 	input.exceptions(ios::badbit | ios::failbit | ios::eofbit);
 	input.open(filename);
 
-	int pn, vn, tn;
+	int pn, vn, tn, en;
 	input >> pn;
 	vector<XMFLOAT3> positions(pn);
 	for (auto i = 0; i < pn; ++i)
@@ -323,6 +323,15 @@ MeshLoader::vpn_mesh_t MeshLoader::LoadMeshFromTXT(const std::wstring & filename
 	vector<unsigned short> inds(tn * 3);
 	for (auto i = 0; i < tn * 3; i += 3)
 		input >> inds[i] >> inds[i + 1] >> inds[i + 2];
+
+	edges.clear();
+	input >> en;
+	for (auto i = 0; i < en; ++i)
+	{
+		Edge edge;
+		input >> edge.vertexIdx1 >> edge.vertexIdx2 >> edge.triangleIdx1 >> edge.triangleIdx2;
+		edges.push_back(edge);
+	}
 
 	return{ move(verts), move(inds) };
 }

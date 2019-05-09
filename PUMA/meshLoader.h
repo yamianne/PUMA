@@ -1,5 +1,6 @@
 #pragma once
 #include "vertexDef.h"
+#include "mesh_structures.h"
 #include <tuple>
 #include <vector>
 
@@ -53,7 +54,7 @@ namespace mini
 
 		static vpn_mesh_t LoadMesh(const std::wstring& fileName);
 
-		static vpn_mesh_t LoadMeshFromTXT(const std::wstring& filename);
+		static vpn_mesh_t LoadMeshFromTXT(const std::wstring& filename, std::vector<Edge> &edges);
 
 	private:
 

@@ -21,9 +21,6 @@
     <ClInclude Include="gk2ExampleBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lightAndShadowMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="meshLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -36,12 +33,12 @@
     <ClInclude Include="puma.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mesh_structures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="gk2ExampleBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="lightAndShadowMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
@@ -58,15 +55,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="pumaVS.hlsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="lightAndShadowPS.hlsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="lightAndShadowVS.hlsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="particleGS.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>

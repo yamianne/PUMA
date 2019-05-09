@@ -5,7 +5,8 @@ cbuffer cbProj : register(b0) //Geometry Shader constant buffer slot 0
 
 struct GSInput
 {
-	float4 pos : POSITION;
+	float4 pos : POSITION0;
+	float4 prev : POSITION1;
 	float age : TEXCOORD0;
 	float angle : TEXCOORD1;
 	float size : TEXCOORD2;
@@ -31,6 +32,17 @@ void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
 	PSInput o = (PSInput)0;
 
 	o.tex2 = float2(i.age / TimeToLive, 0.5f);
+	//float dx = 0.01f;
+	//float dy = 0.02f;
+
+	//PSInput o = (PSInput)0;
+
+	//o.tex2 = float2(i.age / TimeToLive, 0.5f);
+
+	//[branch] if (i.pos.y < i.prev.y)
+	//{
+	//	dy = -dy;
+	//}
 
 	o.pos = i.pos + float4(-dx, -dy, 0.0f, 0.0f);
 	o.pos = mul(projMatrix, o.pos);

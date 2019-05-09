@@ -11,12 +11,13 @@ namespace mini
 		struct ParticleVertex
 		{
 			DirectX::XMFLOAT3 Pos;
+			DirectX::XMFLOAT3 Prev;
 			float Age;
 			float Angle;
 			float Size;
-			static const D3D11_INPUT_ELEMENT_DESC Layout[4];
+			static const D3D11_INPUT_ELEMENT_DESC Layout[5];//!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-			ParticleVertex() : Pos(0.0f, 0.0f, 0.0f), Age(0.0f), Angle(0.0f), Size(0.0f) { }
+			ParticleVertex() : Pos(0.0f, 0.0f, 0.0f), Prev(0.0f, 0.0f, 0.0f), Age(0.0f), Angle(0.0f), Size(0.0f) { }
 		};
 
 		struct ParticleVelocities
@@ -87,7 +88,7 @@ namespace mini
 
 			void Update(const dx_ptr<ID3D11DeviceContext>& context, float dt, DirectX::XMFLOAT4 cameraPosition);
 			void Render(const dx_ptr<ID3D11DeviceContext>& context) const;
-			void UpdateEmitterPosition(DirectX::XMFLOAT3 emmiterPosition);
+			void UpdateEmitterPosition(DirectX::XMVECTOR emitterPosition);
 
 		private:
 			static const DirectX::XMFLOAT3 EMITTER_DIR;	//mean direction of particles' velocity

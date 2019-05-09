@@ -8,12 +8,13 @@ using namespace utils;
 using namespace DirectX;
 using namespace std;
 
-const D3D11_INPUT_ELEMENT_DESC ParticleVertex::Layout[4] =
+const D3D11_INPUT_ELEMENT_DESC ParticleVertex::Layout[5] =//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 1, DXGI_FORMAT_R32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 2, DXGI_FORMAT_R32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	{ "POSITION", 1, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 1, DXGI_FORMAT_R32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 2, DXGI_FORMAT_R32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 };
 
 const XMFLOAT3 ParticleSystem::EMITTER_DIR = XMFLOAT3(0.0f, 1.0f, 0.0f);
@@ -56,9 +57,11 @@ ParticleSystem::ParticleSystem(const DxDevice& device, const ConstantBuffer<Dire
 	m_inputLayout = device.CreateInputLayout<ParticleVertex>(vsCode);
 }
 
-void ParticleSystem::UpdateEmitterPosition(DirectX::XMFLOAT3 emmiterPosition)
+void ParticleSystem::UpdateEmitterPosition(DirectX::XMVECTOR emitterPosition)
 {
-	m_emitterPos = emmiterPosition;
+	XMFLOAT3 pos;
+	XMStoreFloat3(&pos, emitterPosition);
+	m_emitterPos = pos;
 }
 
 void ParticleSystem::Update(const dx_ptr<ID3D11DeviceContext>& context, float dt, DirectX::XMFLOAT4 cameraPosition)

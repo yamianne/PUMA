@@ -18,7 +18,7 @@ namespace mini::gk2
 		DiDevice m_inputDevice;
 		Mouse m_mouse;
 		Keyboard m_keyboard;
-		OrbitCamera m_camera;
+		FPSCamera m_camera;
 
 	private:
 		static constexpr float ROTATION_SPEED = 0.01f;
