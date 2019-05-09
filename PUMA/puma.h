@@ -22,6 +22,7 @@ namespace mini::gk2
 #pragma region CONSTANTS
 		static const unsigned int VB_STRIDE;
 		static const unsigned int VB_OFFSET;
+		static const unsigned int BS_MASK;
 
 		static constexpr DirectX::XMFLOAT4 LIGHT_POS = {-1.0f, 2.0f, 1.0f, 1.0f};
 		static constexpr int ROBOT_PARTS_NUMBER = 6;
@@ -43,10 +44,10 @@ namespace mini::gk2
 		ConstantBuffer<DirectX::XMFLOAT4> m_cbSurfaceColor;	//pixel shader constant buffer slot 0
 		ConstantBuffer<DirectX::XMFLOAT4> m_cbLightPos; //pixel shader constant buffer slot 1
 
-		dx_ptr<ID3D11Texture2D> m_backBufferTexture;
-		dx_ptr<ID3D11RenderTargetView> m_backBuffer;
-		dx_ptr<ID3D11Texture2D> m_depthStencilTexture;
-		dx_ptr<ID3D11DepthStencilView> m_depthStencilView;
+		//dx_ptr<ID3D11Texture2D> m_backBufferTexture;
+		//dx_ptr<ID3D11RenderTargetView> m_backBuffer;
+		//dx_ptr<ID3D11Texture2D> m_depthStencilTexture;
+		//dx_ptr<ID3D11DepthStencilView> m_depthStencilView;
 
 		std::vector<Edge> m_robotPartEdges[ROBOT_PARTS_NUMBER];
 		std::vector<VertexPositionNormal> m_robotPartVertices[ROBOT_PARTS_NUMBER];
@@ -75,6 +76,7 @@ namespace mini::gk2
 		// DSS for reflected world in mirror
 		dx_ptr<ID3D11DepthStencilState> m_dssWrite;
 		dx_ptr<ID3D11DepthStencilState> m_dssTest;
+		dx_ptr<ID3D11DepthStencilState> m_dssTestNoWrite;
 		dx_ptr<ID3D11RasterizerState> m_rsCCW;
 
 		//DSS for Shadow Volumes
@@ -106,6 +108,9 @@ namespace mini::gk2
 		void UpdateCameraCB(DirectX::XMMATRIX cameraMtx);
 		void UpdateSwivel(float dt);
 		void CalculateRobotAngles(DirectX::XMVECTOR pos, DirectX::XMVECTOR normal);
+
+		void TurnOffLight();
+		void TurnOnLight();
 
 		void DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx);
 		void DrawParticles() const;

@@ -22,47 +22,38 @@ struct PSInput
 static const float TimeToLive = 4.0f;
 
 [maxvertexcount(4)]
-void main(point GSInput inArray[1], inout TriangleStream<PSInput> ostream)
+void main(point GSInput inArray[1], inout LineStream<PSInput> ostream)
 {
 	GSInput i = inArray[0];
-	float sina, cosa;
-	sincos(i.angle, sina, cosa);
-	float dx = (cosa - sina) * 0.5 * i.size;
-	float dy = (cosa + sina) * 0.5 * i.size;
+	//float dy = 0.01f;
+
 	PSInput o = (PSInput)0;
 
 	o.tex2 = float2(i.age / TimeToLive, 0.5f);
-	//float dx = 0.01f;
-	//float dy = 0.02f;
-
-	//PSInput o = (PSInput)0;
-
-	//o.tex2 = float2(i.age / TimeToLive, 0.5f);
-
-	//[branch] if (i.pos.y < i.prev.y)
+	//if (i.pos.y < i.prev.y)
 	//{
 	//	dy = -dy;
 	//}
 
-	o.pos = i.pos + float4(-dx, -dy, 0.0f, 0.0f);
+	o.pos = i.pos;
 	o.pos = mul(projMatrix, o.pos);
 	o.tex1 = float2(0.0f, 1.0f);
 	ostream.Append(o);
 
-	o.pos = i.pos + float4(-dy, dx, 0.0f, 0.0f);
-	o.pos = mul(projMatrix, o.pos);
-	o.tex1 = float2(1.0f, 1.0f);
-	ostream.Append(o);
+	//o.pos = i.pos + float4(dy, 0, 0.0f, 0.0f);
+	//o.pos = mul(projMatrix, o.pos);
+	//o.tex1 = float2(1.0f, 1.0f);
+	//ostream.Append(o);
 
-	o.pos = i.pos + float4(dy, -dx, 0.0f, 0.0f);
+	o.pos = i.prev;
 	o.pos = mul(projMatrix, o.pos);
 	o.tex1 = float2(0.0f, 0.0f);
 	ostream.Append(o);
 
-	o.pos = i.pos + float4(dx, dy, 0.0f, 0.0f);
-	o.pos = mul(projMatrix, o.pos);
-	o.tex1 = float2(1.0f, 0.0f);
-	ostream.Append(o);
+	//o.pos = i.prev + float4(dy, 0, 0.0f, 0.0f);
+	//o.pos = mul(projMatrix, o.pos);
+	//o.tex1 = float2(1.0f, 0.0f);
+	//ostream.Append(o);
 
 	ostream.RestartStrip();
 }

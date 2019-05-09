@@ -22,26 +22,26 @@ namespace mini
 			enum PSConstantBufferSlot
 			{
 				LightPositionSlot,
-				SurfaceColorSlot
+				SurfaceColorSlot/*,
+				isLightTurnedOff*/
 			};
 
 			PhongEffect() = default;
 
 			PhongEffect(dx_ptr<ID3D11VertexShader>&& vs, dx_ptr<ID3D11PixelShader>&& ps, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbWorld,
 				const ConstantBuffer<DirectX::XMFLOAT4X4, 2>& cbView, const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj,
-				const ConstantBuffer<DirectX::XMFLOAT4>& cbLightPos, const ConstantBuffer<DirectX::XMFLOAT4>& cbSurfaceColor)
+				const ConstantBuffer<DirectX::XMFLOAT4>& cbLightPos, const ConstantBuffer<DirectX::XMFLOAT4>& cbSurfaceColor/*, const ConstantBuffer<int> cb_isLightTurnedOff*/)
 				: StaticEffect(BasicEffect{ move(vs), move(ps) }, VSConstantBuffers{ cbWorld, cbView, cbProj },
-					PSConstantBuffers{ cbLightPos, cbSurfaceColor })
+					PSConstantBuffers{ cbLightPos, cbSurfaceColor/*, cb_isLightTurnedOff */})
 			{ }
 
 			//setter methods defined for convenience
 			void SetWorldMatrixBuffer(const ConstantBuffer<DirectX::XMFLOAT4X4>& buffer) { SetVSConstantBuffer(WorldMtxSlot, buffer); }
 			void SetViewMatrixBuffer(const ConstantBuffer<DirectX::XMFLOAT4X4, 2>& buffer) { SetVSConstantBuffer(ViewMtxSlot, buffer); }
 			void SetProjMatrixBuffer(const ConstantBuffer<DirectX::XMFLOAT4X4>& buffer) { SetVSConstantBuffer(ProjMtxSlot, buffer); }
-			void SetLightPosBuffer(const ConstantBuffer<DirectX::XMFLOAT4>& buffer) {
-				SetPSConstantBuffer(LightPositionSlot, buffer);
-			}
+			void SetLightPosBuffer(const ConstantBuffer<DirectX::XMFLOAT4>& buffer) {SetPSConstantBuffer(LightPositionSlot, buffer); }
 			void SetSurfaceColorBuffer(const ConstantBuffer<DirectX::XMFLOAT4>& buffer) { SetPSConstantBuffer(SurfaceColorSlot, buffer); }
+			//void SetLightFlag(const ConstantBuffer<int>& buffer) { SetPSConstantBuffer(SurfaceColorSlot, buffer); }
 		};
 	}
 }

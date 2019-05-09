@@ -53,9 +53,9 @@ namespace mini
 		}
 
 		DxDevice m_device;
-
-	private:
 		RenderTargetsEffect m_renderTarget;
+	private:
+		
 		Clock m_clock;
 	};
 }

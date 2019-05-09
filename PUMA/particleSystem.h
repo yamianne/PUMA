@@ -82,7 +82,8 @@ namespace mini
 			ParticleSystem(ParticleSystem&& other) = default;
 
 			ParticleSystem(const DxDevice& device, const ConstantBuffer<DirectX::XMFLOAT4X4, 2> cbView,
-				const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj, DirectX::XMFLOAT3 emmiterPosition);
+				const ConstantBuffer<DirectX::XMFLOAT4X4>& cbProj, DirectX::XMFLOAT3 emmiterPosition,
+				DirectX::XMMATRIX mirrorMtx);
 
 			ParticleSystem& operator=(ParticleSystem&& other) = default;
 
@@ -117,6 +118,8 @@ namespace mini
 			dx_ptr<ID3D11InputLayout> m_inputLayout;
 
 			std::default_random_engine m_random;
+			DirectX::XMFLOAT3 m_armEndNormal;
+			DirectX::XMMATRIX m_mirrorMtx;
 
 			DirectX::XMFLOAT3 RandomVelocity();
 			void AddNewParticle();

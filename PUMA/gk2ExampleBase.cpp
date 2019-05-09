@@ -35,9 +35,9 @@ bool Gk2ExampleBase::HandleCameraInput(double dt)
 		m_camera.MoveTarget(-m_camera.getRightDir() * 2 * dt);
 	if (keyboardState.isKeyDown(DIK_D))
 		m_camera.MoveTarget(m_camera.getRightDir() * 2 * dt);
-	if (keyboardState.isKeyDown(DIK_PGUP))
+	if (keyboardState.isKeyDown(DIK_Q))
 		m_camera.MoveTarget(XMVECTOR{ 0.0f, 1.0f, 0.0f } * 2 * dt);
-	if (keyboardState.isKeyDown(DIK_PGDN))
+	if (keyboardState.isKeyDown(DIK_E))
 		m_camera.MoveTarget(XMVECTOR{ 0.0f, -1.0f, 0.0f } * 2 * dt);
 	return true;
 }

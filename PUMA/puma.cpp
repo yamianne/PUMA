@@ -10,6 +10,7 @@ using namespace std;
 
 const unsigned int Puma::VB_STRIDE = sizeof(VertexPositionNormal);
 const unsigned int Puma::VB_OFFSET = 0;
+const unsigned int Puma::BS_MASK = 0xffffffff;
 
 Puma::Puma(HINSTANCE appInstance)
 	: Gk2ExampleBase(appInstance, 1280, 720, L"PUMA - Anna Kozłowska"), 
@@ -20,13 +21,13 @@ Puma::Puma(HINSTANCE appInstance)
 	m_cbSurfaceColor(m_device.CreateConstantBuffer<XMFLOAT4>()),
 	m_cbLightPos(m_device.CreateConstantBuffer<XMFLOAT4>())
 {
-	m_backBufferTexture = m_device.swapChain().GetBuffer();
-	auto windowSize = m_window.getClientSize();
-	//auto backBufferTexture = m_device.swapChain().GetBuffer();
-	m_backBuffer = m_device.CreateRenderTargetView(m_backBufferTexture);
-	m_depthStencilView = m_device.CreateDepthStencilView(windowSize);
-	ID3D11RenderTargetView* backBuffer = m_backBuffer.get();
-	m_device.context()->OMSetRenderTargets(1, &backBuffer, m_depthStencilView.get());
+	//m_backBufferTexture = m_device.swapChain().GetBuffer();
+	//auto windowSize = m_window.getClientSize();
+	////auto backBufferTexture = m_device.swapChain().GetBuffer();
+	//m_backBuffer = m_device.CreateRenderTargetView(m_backBufferTexture);
+	//m_depthStencilView = m_device.CreateDepthStencilView(windowSize);
+	//ID3D11RenderTargetView* backBuffer = m_backBuffer.get();
+	//m_device.context()->OMSetRenderTargets(1, &backBuffer, m_depthStencilView.get());
 
 	//Projection matrix
 	auto s = m_window.getClientSize();
@@ -67,6 +68,8 @@ Puma::Puma(HINSTANCE appInstance)
 	XMStoreFloat4x4(&m_wallsMtx[5], temp * XMMatrixRotationX(-XM_PIDIV2) * translation);
 	
 	XMMATRIX mirror = XMMatrixRotationY(-XM_PIDIV2) * XMMatrixRotationZ(MIRROR_ANGLE) * XMMatrixTranslationFromVector(MIRROR_POSITION);
+	m_swivelNorm = XMVector3TransformNormal(XMVECTOR{ 0.0f, 0.0f, -1.0f }, mirror);
+
 	XMVECTOR det;
 	XMStoreFloat4x4(&m_mirrorMtx, mirror);
 	XMStoreFloat4x4(&m_mirroredWorldMtx, XMMatrixInverse(&det, mirror) * XMMatrixScaling(1, 1, -1) * mirror);
@@ -91,14 +94,14 @@ Puma::Puma(HINSTANCE appInstance)
 		m_cbWorldMtx, m_cbViewMtx, m_cbProjMtx, m_cbLightPos, m_cbSurfaceColor);
 	m_inputlayout = m_device.CreateInputLayout(VertexPositionNormal::Layout, vsCode);
 
-	m_particles = ParticleSystem(m_device, m_cbViewMtx, m_cbProjMtx, XMFLOAT3(-1.3f, -0.6f, -0.14f));
+	m_particles = ParticleSystem(m_device, m_cbViewMtx, m_cbProjMtx, XMFLOAT3(-1.3f, -0.6f, -0.14f), mirror);
 
 	m_device.context()->IASetInputLayout(m_inputlayout.get());
 	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	UpdateSwivel(0.0f);
 }
 
-std::vector<Triangle> mini::gk2::Puma::CreateTrianglesVector(std::vector<unsigned short> ind)
+std::vector<Triangle> Puma::CreateTrianglesVector(std::vector<unsigned short> ind)
 {
 	std::vector<Triangle> triangles;
 	for (int i = 0; i < ind.size(); i+=3)
@@ -109,18 +112,33 @@ std::vector<Triangle> mini::gk2::Puma::CreateTrianglesVector(std::vector<unsigne
 void Puma::CreateRenderStates()
 {
 	DepthStencilDescription dssDesc;
-	dssDesc.StencilEnable = true; //Enable stencil operations
-	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL; //Disable writing to depth buffer
-	//dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; //Disable writing to depth buffer
-	dssDesc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER; //Back faces should never pass stencil test
-	dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS; //Front faces should always pass stencil test
-	dssDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE; //when pixel passes depth and stencil test write to stencil buffer
+	//dssDesc.StencilEnable = true; //Enable stencil operations
+	//dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL; //Disable writing to depth buffer
+	////dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; //Disable writing to depth buffer
+	//dssDesc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER; //Back faces should never pass stencil test
+	//dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS; //Front faces should always pass stencil test
+	//dssDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE; //when pixel passes depth and stencil test write to stencil buffer
+	//m_dssWrite = m_device.CreateDepthStencilState(dssDesc);
+
+	//dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	//dssDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+	//dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+	//m_dssTest = m_device.CreateDepthStencilState(dssDesc);
+
+	dssDesc.StencilEnable = true; 
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; 
+	dssDesc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER; 
+	dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS; 
+	dssDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
 	m_dssWrite = m_device.CreateDepthStencilState(dssDesc);
 
-	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	dssDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dssDesc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER; 
 	dssDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
 	m_dssTest = m_device.CreateDepthStencilState(dssDesc);
+
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	m_dssTestNoWrite = m_device.CreateDepthStencilState(dssDesc);
 
 	m_rsCCW = m_device.CreateRasterizerState(RasterizerDescription(true));
 
@@ -129,9 +147,39 @@ void Puma::CreateRenderStates()
 	m_rsCullNone = m_device.CreateRasterizerState(rsDesc);
 
 	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	//dssDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+	dssDesc.StencilEnable = false;
 	m_dssNoWrite = m_device.CreateDepthStencilState(dssDesc);
 
 	m_bsAlpha = m_device.CreateBlendState(BlendDescription::AlphaBlendDescription());
+
+	DepthStencilDescription dss2Desc;
+	//Setup depth stencil state for writing
+	dss2Desc.StencilEnable = true;
+	dss2Desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	dss2Desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_INCR;
+	dss2Desc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER;
+	dss2Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	m_dsShadowWriteFront = m_device.CreateDepthStencilState(dss2Desc);
+	dss2Desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_DECR;
+	m_dsShadowWriteBack = m_device.CreateDepthStencilState(dss2Desc);
+
+	//Setup depth stencil state for testing
+	dss2Desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dss2Desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	dss2Desc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+	dss2Desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	m_dsShadowTest = m_device.CreateDepthStencilState(dss2Desc);
+	dss2Desc.FrontFace.StencilFunc = D3D11_COMPARISON_NOT_EQUAL;
+	m_dsShadowTestComplement = m_device.CreateDepthStencilState(dss2Desc);
+
+	//BlendDescription bs2Desc;
+	//bs2Desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ZERO;
+	//bs2Desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	//bs2Desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	////bs2Desc.RenderTarget[0].BlendOp = false;
+	//bs2Desc.RenderTarget[0].RenderTargetWriteMask = 0;
+	//m_bsNoColorWrite = m_device.CreateBlendState(bs2Desc);
 }
 
 void Puma::UpdateCameraCB(DirectX::XMMATRIX cameraMtx)
@@ -151,11 +199,9 @@ void Puma::UpdateSwivel(float dt)
 	float circleX = 0.3f * XMScalarSin(XM_2PI * time / 4);
 	float circleY = 0.3f * XMScalarCos(XM_2PI * time / 4);
 	XMVECTOR pos = { circleX, circleY, 0.0f };
-	XMVECTOR norm = { 0.0f, 0.0f, -1.0f };
 	XMMATRIX mirrorMtx;
 	mirrorMtx = XMLoadFloat4x4(&m_mirrorMtx);
 	m_swivelPos = XMVector3TransformCoord(pos, mirrorMtx);
-	m_swivelNorm = XMVector3TransformNormal(norm, mirrorMtx);
 	XMStoreFloat4x4(&m_helpPointMtx, XMMatrixTranslationFromVector(m_swivelPos));
 }
 
@@ -193,7 +239,18 @@ void Puma::CalculateRobotAngles(XMVECTOR pos, XMVECTOR normal)
 	XMStoreFloat4x4(&m_robotPartMtx[4], mtx);
 	mtx = XMMatrixTranslation((l1+l2), -dy, 0.0f) * XMMatrixRotationZ(a5) * XMMatrixTranslation(-(l1 + l2), dy, 0.0f) * mtx;
 	XMStoreFloat4x4(&m_robotPartMtx[5], mtx);
-}
+}
+
+void Puma::TurnOffLight()
+{
+	m_cbLightPos.Update(m_device.context(), XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f});
+}
+
+void Puma::TurnOnLight()
+{
+	m_cbLightPos.Update(m_device.context(), LIGHT_POS);
+}
+
 
 void Puma::Update(const Clock& c)
 {
@@ -221,8 +278,6 @@ void Puma::DrawMesh(const Mesh& m, DirectX::XMFLOAT4X4 worldMtx)
 void Puma::DrawParticles() const
 {
 	m_particles.Render(m_device.context());
-	//Particles use a geometry shader and different input layout and topology
-	//which need to be reset before drawing anything else
 	m_device.context()->GSSetShader(nullptr, nullptr, 0);
 	m_device.context()->IASetInputLayout(m_inputlayout.get());
 	m_device.context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -237,21 +292,27 @@ void Puma::DrawSceneInMirror()
 	XMMATRIX viewMtx = m_camera.getViewMatrix();
 	XMMATRIX mirrorViewMtx = XMMatrixMultiply(XMLoadFloat4x4(&m_mirroredWorldMtx), viewMtx);
 	UpdateCameraCB(mirrorViewMtx);
+
 	m_device.context()->RSSetState(m_rsCCW.get());
 	
-	DrawMesh(m_mirror, m_mirrorMtx);
-	
 	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	for (auto& wallMtx : m_wallsMtx)
-		DrawMesh(m_wall, wallMtx);
+
 	DrawMesh(m_cylinder, m_cylinderMtx);
 	for (auto& mtx : m_cylinderBaseMtx)
 		DrawMesh(m_cylinderBase, mtx);
 
-	//m_device.context()->OMSetDepthStencilState(m_dssTestRobot.get(), 1);
 	for (int idx = 0; idx < ROBOT_PARTS_NUMBER; idx++)
 		DrawMesh(m_robotPart[idx], m_robotPartMtx[idx]);
 
+	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, UINT_MAX);
+	m_device.context()->OMSetDepthStencilState(m_dssTestNoWrite.get(), 1);
+	DrawParticles();
+	//m_device.context()->OMSetBlendState(nullptr, nullptr, UINT_MAX);
+	//m_device.context()->OMSetDepthStencilState(m_dssTest.get(), 0);
+	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+
+	for (auto& wallMtx : m_wallsMtx)
+		DrawMesh(m_wall, wallMtx);
 	m_device.context()->RSSetState(nullptr);
 
 	UpdateCameraCB(viewMtx);
@@ -268,10 +329,9 @@ void Puma::DrawScene()
 	DrawMesh(m_cylinder, m_cylinderMtx);
 	for (auto& mtx : m_cylinderBaseMtx)
 		DrawMesh(m_cylinderBase, mtx);
-	DrawMesh(m_mirror, m_mirrorMtx);
 	//DrawMesh(m_helpPoint, m_helpPointMtx);
 
-	m_device.context()->RSSetState(nullptr);
+	//m_device.context()->RSSetState(nullptr);
 }
 
 void Puma::Render()
@@ -282,42 +342,41 @@ void Puma::Render()
 
 	m_phongEffect.Begin(m_device.context());
 	DrawSceneInMirror();
+	m_phongEffect.Begin(m_device.context());
+	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, BS_MASK);
+	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(0.4f, 0.2f, 0.2f, 0.4f));
+	DrawMesh(m_mirror, m_mirrorMtx);
+
+	m_device.context()->OMSetBlendState(nullptr, nullptr, BS_MASK);
+	m_cbSurfaceColor.Update(m_device.context(), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
 	DrawScene();
+	//TurnOffLight();
+	//DrawShadowGeometry();
 
-	//m_phongEffect->Begin(m_context);
+	// Draw shadow volumes
+	//m_renderTarget.ClearDepthStencil(m_device.context(), D3D11_CLEAR_DEPTH);
+	////m_device.context()->ClearDepthStencilView(m_depthStencilView.get(), D3D11_CLEAR_STENCIL, 1.0f, cameraInShadow ? 1 : 0);
+	////m_device.context()->OMSetRenderTargets(0, nullptr, m_depthStencilView.get());
+	//m_device.context()->OMSetDepthStencilState(m_dsShadowWriteFront.get(), 0);
+	//DrawShadowGeometry();
+	//m_device.context()->RSSetState(m_rsCCW.get());
+	//m_device.context()->OMSetDepthStencilState(m_dsShadowWriteBack.get(), 0);
+	//DrawShadowGeometry();
+	//m_device.context()->RSSetState(nullptr);
+	////ID3D11RenderTargetView *backbuffer = m_backBuffer.get();
+	////m_device.context()->OMSetRenderTargets(1, &backbuffer, m_depthStencilView.get());
+	//m_device.context()->OMSetDepthStencilState(m_dsShadowTestComplement.get(), 0);
 
-	// Shadows step #1: draw unlit
-	//OffLight();
-	//DrawPlate(true);
+	//m_device.context()->OMSetDepthStencilState(m_dsShadowTest.get(), 0);
 	//DrawScene();
-
-	// Shadows step #2: create stencil buffer
-	//m_context->OMSetBlendState(m_bsNoColorWrite.get(), nullptr, BS_MASK);
-	m_device.context()->ClearDepthStencilView(m_depthStencilView.get(), D3D11_CLEAR_STENCIL, 1.0f, cameraInShadow ? 1 : 0);
-	m_device.context()->OMSetRenderTargets(0, nullptr, m_depthStencilView.get());
-	m_device.context()->OMSetDepthStencilState(m_dsShadowWriteFront.get(), 0);
-	DrawShadowGeometry();
-	m_device.context()->RSSetState(m_rsCCW.get());
-	m_device.context()->OMSetDepthStencilState(m_dsShadowWriteBack.get(), 0);
-	DrawShadowGeometry();
-	m_device.context()->RSSetState(nullptr);
-	// Shadows step #3: draw lit
-	//m_context->OMSetBlendState(nullptr, nullptr, BS_MASK);
-	ID3D11RenderTargetView *backbuffer = m_backBuffer.get();
-	m_device.context()->OMSetRenderTargets(1, &backbuffer, m_depthStencilView.get());
-	//SetLight();
-	m_device.context()->OMSetDepthStencilState(m_dsShadowTestComplement.get(), 0);
-	//DrawPlate(false);
-	m_device.context()->OMSetDepthStencilState(m_dsShadowTest.get(), 0);
-	DrawScene();
-	m_device.context()->OMSetDepthStencilState(nullptr, 0);
+	//m_device.context()->OMSetDepthStencilState(nullptr, 0);
 
 
 	// Particles
-	m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, UINT_MAX);
+	//m_device.context()->OMSetBlendState(m_bsAlpha.get(), nullptr, UINT_MAX);
 	m_device.context()->OMSetDepthStencilState(m_dssNoWrite.get(), 0);
 	DrawParticles();
-	m_device.context()->OMSetBlendState(nullptr, nullptr, UINT_MAX);
+	//m_device.context()->OMSetBlendState(nullptr, nullptr, UINT_MAX);
 	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 }
 
