@@ -354,22 +354,19 @@ void Puma::Render()
 	//DrawShadowGeometry();
 
 	// Draw shadow volumes
-	//m_renderTarget.ClearDepthStencil(m_device.context(), D3D11_CLEAR_DEPTH);
-	////m_device.context()->ClearDepthStencilView(m_depthStencilView.get(), D3D11_CLEAR_STENCIL, 1.0f, cameraInShadow ? 1 : 0);
-	////m_device.context()->OMSetRenderTargets(0, nullptr, m_depthStencilView.get());
-	//m_device.context()->OMSetDepthStencilState(m_dsShadowWriteFront.get(), 0);
-	//DrawShadowGeometry();
-	//m_device.context()->RSSetState(m_rsCCW.get());
-	//m_device.context()->OMSetDepthStencilState(m_dsShadowWriteBack.get(), 0);
-	//DrawShadowGeometry();
-	//m_device.context()->RSSetState(nullptr);
-	////ID3D11RenderTargetView *backbuffer = m_backBuffer.get();
-	////m_device.context()->OMSetRenderTargets(1, &backbuffer, m_depthStencilView.get());
-	//m_device.context()->OMSetDepthStencilState(m_dsShadowTestComplement.get(), 0);
+	m_renderTarget.ClearDepthStencil(m_device.context(), D3D11_CLEAR_STENCIL);
+	m_device.context()->OMSetDepthStencilState(m_dsShadowWriteFront.get(), 0);
+	DrawShadowGeometry();
+	m_device.context()->RSSetState(m_rsCCW.get());
+	m_device.context()->OMSetDepthStencilState(m_dsShadowWriteBack.get(), 0);
+	DrawShadowGeometry();
+	m_device.context()->RSSetState(nullptr);
 
-	//m_device.context()->OMSetDepthStencilState(m_dsShadowTest.get(), 0);
-	//DrawScene();
-	//m_device.context()->OMSetDepthStencilState(nullptr, 0);
+	m_device.context()->OMSetDepthStencilState(m_dsShadowTestComplement.get(), 0);
+	DrawMesh(m_mirror, m_mirrorMtx);
+	m_device.context()->OMSetDepthStencilState(m_dsShadowTest.get(), 0);
+	DrawScene();
+	m_device.context()->OMSetDepthStencilState(nullptr, 0);
 
 
 	// Particles
